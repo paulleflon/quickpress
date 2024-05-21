@@ -3,11 +3,13 @@ export class ButtonData {
 		this.key = key;
 		this.isCurrentGoal = false;
 		this.pressed = false;
+		this.index = undefined;
 	}
 
-	step(isGoal) {
+	step(isGoal, index) {
 		this.isCurrentGoal = isGoal;
 		this.pressed = false;
+		this.index = index;
 	}
 
 	reset(key) {

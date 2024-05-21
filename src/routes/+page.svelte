@@ -10,6 +10,7 @@
 	let idle = true; // Ignores all events (in between game steps)
 	let pressCount;
 	const pressPerStep = 6;
+	let enableOrdered = false;
 
 	const startGame = () => {
 		if (gameStatus === 'loss') buttons = initButtons();
@@ -23,16 +24,24 @@
 		pressCount = 0;
 
 		const goals = new Array(16).fill(false);
+		const indexes = new Array(16).fill(undefined);
 		for (let i = 0; i < pressPerStep; ) {
 			let index = Math.floor(Math.random() * 16);
 			if (!goals[index]) {
 				goals[index] = true;
+				if (enableOrdered) {
+					let j;
+					do {
+						j = Math.floor(Math.random() * pressPerStep);
+					} while (indexes.includes(j));
+					indexes[index] = j;
+				}
 				i++;
 			}
 		}
 
 		for (const i in buttons) {
-			buttons[i].step(goals[i]);
+			buttons[i].step(goals[i], indexes[i]);
 		}
 		buttons = buttons;
 	};
@@ -47,6 +56,7 @@
 		if (idle) return;
 
 		if (!buttons[i].isCurrentGoal || buttons[i].pressed) return lose();
+		if (enableOrdered && buttons[i].index !== pressCount) return lose();
 		buttons[i].pressed = true;
 		pressCount++;
 		score++;
@@ -77,8 +87,14 @@
 		{/each}
 	</div>
 </div>
-<button on:click={startGame}>Play</button>
-
+<button on:click={startGame} disabled={gameStatus === 'playing'}>Play</button>
+<input
+	type="checkbox"
+	bind:value={enableOrdered}
+	disabled={gameStatus === 'playing'}
+	id="ordered"
+/>
+<label for="ordered">Enable ordered presses</label>
 {#if dev}
 	<div class="dev-info">
 		<div>{PKG.name} - {PKG.version}</div>
