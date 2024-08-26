@@ -6,7 +6,7 @@
 	let gameData = {
 		status: 'idle',
 		score: 0,
-		bestScore: 0,
+		best: 0,
 		timeout: 0,
 		roundCount: 0,
 		pressesThisRound: 0
@@ -71,7 +71,7 @@
 <div class="game-container">
 	<div class="scores">
 		<div>{gameData.score}</div>
-		<div>{gameData.bestScore}</div>
+		<div>{gameData.best}</div>
 	</div>
 	<Keyboard
 		{keys}
