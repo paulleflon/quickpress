@@ -2,37 +2,49 @@
 	import { initButtons } from '$lib/ButtonData.js';
 	import Button from '../components/Button.svelte';
 	import { dev } from '$app/environment';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
+	import Keyboard from '../components/Keyboard.svelte';
 
-	let buttons = initButtons();
-	let score = 0;
-	let best = 0;
-	let gameStatus = 'before'; // before / playing / after
-	let idle = true; // Ignores all events (in between game steps)
-	let pressCount;
-	const pressPerStep = 6;
-	let enableOrdered = false;
-
-	const startGame = () => {
-		if (gameStatus === 'loss') buttons = initButtons();
-		gameStatus = 'playing';
-		score = 0;
-		idle = false;
-		startStep();
+	let gameData = {
+		status: 'idle',
+		score: 0,
+		bestScore: 0,
+		timeout: 0,
+		roundCount: 0,
+		pressesThisRound: 0
+	};
+	let gameRules = {
+		timer: true,
+		ordered: false,
+		roundDuration: 3000,
+		pressesPerRound: 6
 	};
 
-	const startStep = () => {
-		pressCount = 0;
+	let startTimerAnimation; /* Allows to trigger Keyboard's timer animation from Parent */
+	let keys = initButtons();
 
+	const startGame = () => {
+		keys = initButtons();
+		gameData.status = 'playing';
+		gameData.score = 0;
+		gameData.roundCount = 0;
+		startRound();
+		startTimerAnimation();
+	};
+
+	export const startRound = () => {
+		gameData.roundCount++;
 		const goals = new Array(16).fill(false);
 		const indexes = new Array(16).fill(undefined);
-		for (let i = 0; i < pressPerStep; ) {
+		for (let i = 0; i < gameRules.pressesPerRound; ) {
 			let index = Math.floor(Math.random() * 16);
 			if (!goals[index]) {
 				goals[index] = true;
-				if (enableOrdered) {
+				if (gameRules.ordered) {
 					let j;
 					do {
-						j = Math.floor(Math.random() * pressPerStep);
+						j = Math.floor(Math.random() * gameRules.pressesPerRound);
 					} while (indexes.includes(j));
 					indexes[index] = j;
 				}
@@ -40,65 +52,58 @@
 			}
 		}
 
-		for (const i in buttons) {
-			buttons[i].step(goals[i], indexes[i]);
+		for (const i in keys) {
+			keys[i].step(goals[i], indexes[i]);
 		}
-		buttons = buttons;
-	};
-
-	const onKeyDown = (e) => {
-		if (idle) return;
-		const k = e.key;
-		if (buttons.every((btn) => btn.key !== k)) lose();
-	};
-
-	const onPress = (i) => {
-		if (idle) return;
-
-		if (!buttons[i].isCurrentGoal || buttons[i].pressed) return lose();
-		if (enableOrdered && buttons[i].index !== pressCount) return lose();
-		buttons[i].pressed = true;
-		pressCount++;
-		score++;
-		if (score > best) best = score;
-		if (pressCount === pressPerStep) {
-			startStep();
+		keys = keys;
+		if (gameRules.timer) {
+			clearTimeout(gameData.timeout);
+			gameData.timeout = setTimeout(lose, gameRules.roundDuration);
 		}
 	};
 
 	const lose = () => {
-		idle = true;
-		gameStatus = 'loss';
+		gameData.status = 'idle';
+		gameData.score = 0;
+		gameData.pressesThisRound = 0;
+		clearTimeout(gameData.timeout);
 	};
 </script>
 
-<svelte:window on:keydown={onKeyDown} />
-
 <header>quickpress</header>
-
 <div class="game-container">
 	<div class="scores">
-		<div>{score}</div>
-		<div>{best}</div>
+		<div>{gameData.score}</div>
+		<div>{gameData.bestScore}</div>
 	</div>
-	<div class={'game-board ' + (gameStatus === 'loss' ? 'loss' : '')}>
-		{#each buttons as data, index}
-			<Button bind:data index on:pressed={() => onPress(index)} />
-		{/each}
-	</div>
+	<Keyboard
+		{keys}
+		bind:gameRules
+		bind:gameData
+		on:lose={lose}
+		on:roundEnd={startRound}
+		bind:startTimerAnimation
+	/>
 </div>
-<button on:click={startGame} disabled={gameStatus === 'playing'}>Play</button>
+<button on:click={startGame} disabled={gameData.status === 'playing'}>Play</button>
 <input
 	type="checkbox"
-	bind:value={enableOrdered}
-	disabled={gameStatus === 'playing'}
+	bind:checked={gameRules.ordered}
+	disabled={gameData.status === 'playing'}
 	id="ordered"
 />
 <label for="ordered">Enable ordered presses</label>
+<input
+	type="checkbox"
+	bind:checked={gameRules.timer}
+	disabled={gameData.status === 'playing'}
+	id="timed"
+/>
+<label for="timed">Enable timed presses</label>
 {#if dev}
 	<div class="dev-info">
+		<!-- svelte-ignore missing-declaration -->
 		<div>{PKG.name} - {PKG.version}</div>
-		<div>{navigator.userAgent}</div>
 	</div>
 {/if}
 
@@ -149,6 +154,22 @@
 		text-align: center;
 		& div + div {
 			font: 15pt Arial;
+		}
+	}
+
+	.timer-container {
+		position: relative;
+		width: 400px;
+		height: 20px;
+		margin: 20px 0;
+		background: #fff;
+		& .timer-indicator {
+			position: absolute;
+			left: 0;
+			top: 0;
+			height: 100%;
+			width: 100%;
+			background: red;
 		}
 	}
 
