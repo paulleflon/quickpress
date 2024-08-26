@@ -1,9 +1,6 @@
 <script>
-	import { initButtons } from '$lib/ButtonData.js';
-	import Button from '../components/Button.svelte';
 	import { dev } from '$app/environment';
-	import { browser } from '$app/environment';
-	import { onMount } from 'svelte';
+	import { initButtons } from '$lib/ButtonData.js';
 	import Keyboard from '../components/Keyboard.svelte';
 
 	let gameData = {
@@ -30,7 +27,6 @@
 		gameData.score = 0;
 		gameData.roundCount = 0;
 		startRound();
-		startTimerAnimation();
 	};
 
 	export const startRound = () => {
@@ -50,6 +46,7 @@
 				}
 				i++;
 			}
+			if (gameRules.timer) startTimerAnimation();
 		}
 
 		for (const i in keys) {
@@ -66,7 +63,7 @@
 		gameData.status = 'idle';
 		gameData.score = 0;
 		gameData.pressesThisRound = 0;
-		clearTimeout(gameData.timeout);
+		if (gameRules.timer) clearTimeout(gameData.timeout);
 	};
 </script>
 
@@ -156,51 +153,6 @@
 			font: 15pt Arial;
 		}
 	}
-
-	.timer-container {
-		position: relative;
-		width: 400px;
-		height: 20px;
-		margin: 20px 0;
-		background: #fff;
-		& .timer-indicator {
-			position: absolute;
-			left: 0;
-			top: 0;
-			height: 100%;
-			width: 100%;
-			background: red;
-		}
-	}
-
-	.game-board {
-		position: relative;
-		overflow: hidden;
-		background: #bbb;
-		padding: 10px;
-		border-radius: 36px;
-		width: 400px;
-		max-width: 80%;
-		display: flex;
-		flex-flow: wrap;
-		gap: 8px;
-		justify-content: center;
-		&.loss:after {
-			content: 'You lost!';
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			background: #000a;
-			font: bold 55pt Arial;
-			color: white;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-		}
-	}
-
 	button {
 		font: 20pt Helvetica Neue;
 	}

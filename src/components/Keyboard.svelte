@@ -44,8 +44,6 @@
 		if (gameData.pressesThisRound === gameRules.pressesPerRound) {
 			dispatch('roundEnd');
 			gameData.pressesThisRound = 0;
-			timerAnimation.cancel();
-			timerAnimation.play();
 		}
 	};
 
