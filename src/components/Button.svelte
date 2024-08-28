@@ -3,6 +3,7 @@
 
 	export let data;
 	export let tabindex;
+	export let blinded = false;
 
 	const dispatch = createEventDispatcher();
 
@@ -14,7 +15,7 @@
 <svelte:window on:keydown={keydown} />
 
 <div
-	class={`${data.isCurrentGoal ? 'goal' : ''} ${data.pressed ? 'pressed' : ''}`}
+	class={`${data.isCurrentGoal ? 'goal' : ''} ${data.pressed ? 'pressed' : ''} ${blinded ? 'blinded' : ''}`}
 	on:mousedown={() => dispatch('pressed')}
 	role="button"
 	{tabindex}
@@ -38,6 +39,8 @@
 		align-items: center;
 		background: #eee;
 		cursor: pointer;
+		color: #000;
+		transition: color 0s;
 
 		& span {
 			font: 13pt Arial;
@@ -63,5 +66,10 @@
 		&.goal.pressed {
 			background: #eee;
 		}
+	}
+
+	.blinded {
+		color: #0000;
+		transition: color 5s linear;
 	}
 </style>

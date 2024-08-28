@@ -1,6 +1,6 @@
 {
 	"name": "quickpress",
-	"version": "0.0.2-indev",
+	"version": "0.0.3-indev",
 	"private": false,
 	"scripts": {
 		"dev": "vite dev --port 3000 --host",

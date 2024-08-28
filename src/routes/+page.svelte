@@ -15,8 +15,11 @@
 		timer: true,
 		ordered: false,
 		roundDuration: 3000,
-		pressesPerRound: 6
+		pressesPerRound: 6,
+		blind: false
 	};
+	let blindingEnabled = false;
+	let blindingTimeout;
 
 	let startTimerAnimation; /* Allows to trigger Keyboard's timer animation from Parent */
 	let keys = initButtons();
@@ -27,6 +30,11 @@
 		gameData.score = 0;
 		gameData.roundCount = 0;
 		startRound();
+		if (gameRules.blind) {
+			blindingTimeout = setTimeout(() => {
+				blindingEnabled = true;
+			}, 5000);
+		}
 	};
 
 	export const startRound = () => {
@@ -63,6 +71,8 @@
 		gameData.status = 'idle';
 		gameData.score = 0;
 		gameData.pressesThisRound = 0;
+		blindingEnabled = false;
+		clearTimeout(blindingTimeout);
 		if (gameRules.timer) clearTimeout(gameData.timeout);
 	};
 </script>
@@ -80,6 +90,7 @@
 		on:lose={lose}
 		on:roundEnd={startRound}
 		bind:startTimerAnimation
+		bind:blindingEnabled
 	/>
 </div>
 <button on:click={startGame} disabled={gameData.status === 'playing'}>Play</button>
@@ -97,6 +108,14 @@
 	id="timed"
 />
 <label for="timed">Enable timed presses</label>
+<input
+	type="checkbox"
+	bind:checked={gameRules.blind}
+	disabled={gameData.status === 'playing'}
+	id="blind"
+/>
+<label for="blind">Enable blind mode</label>
+
 {#if dev}
 	<div class="dev-info">
 		<!-- svelte-ignore missing-declaration -->

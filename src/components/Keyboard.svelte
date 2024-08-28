@@ -4,9 +4,8 @@
 	export let gameData;
 	export let gameRules;
 	export let keys;
+	export let blindingEnabled = false;
 	const dispatch = createEventDispatcher();
-
-	let lost = false;
 
 
 	/* Timer rendering */
@@ -58,7 +57,6 @@
 		timerAnimation.play();
 	}
 
-
 </script>
 
 <svelte:window on:keydown={onKeyDown} />
@@ -72,7 +70,7 @@
 	</svg>
 	{#if gameData.status === 'playing'}
 		{#each keys as data, index}
-			<Button bind:data index on:pressed={() => onPress(index)} />
+			<Button bind:data index on:pressed={() => onPress(index)} bind:blinded={blindingEnabled} />
 		{/each}
 	{/if}
 </div>
