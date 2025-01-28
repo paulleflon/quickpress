@@ -24,7 +24,7 @@
 		<span>{data.key.toUpperCase()}</span>
 	{/if}
 	{#if data.index !== undefined && !data.pressed}
-		<span>{data.index + 1}</span>
+		<span class={`${data.index === 0 ? 'current' : ''}`}>{data.index + 1}</span>
 	{/if}
 </div>
 
@@ -57,6 +57,9 @@
 			border-radius: 50%;
 			top: -5px;
 			right: 0;
+			&.current {
+				background: green;
+			}
 		}
 
 		&.goal {
